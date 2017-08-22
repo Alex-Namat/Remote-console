@@ -5,7 +5,6 @@
 #ifndef CLIENT_SYNC_TCP_CLIENT_HPP
 #define CLIENT_SYNC_TCP_CLIENT_HPP
 
-
 #include <boost/asio.hpp>
 
 namespace asio = boost::asio;
@@ -29,12 +28,13 @@ private:
     void write(const std::string & msg);
     size_t read_complete(const boost::system::error_code & err, size_t bytes);
 
-    asio::io_service service;
+    void pinged();
+
+    asio::io_service service_;
     ip::tcp::endpoint ep;
-    ip::tcp::socket sock_;
+    ip::tcp::socket socket_;
     int already_read_;
-    char buff_[MAX_MSG];
-    bool started_;
+    char buffer_[MAX_MSG];
     std::string username_;
 };
 
