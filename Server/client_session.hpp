@@ -9,13 +9,15 @@
 #include <chrono>
 
 #include <boost/asio.hpp>
+#include <boost/process.hpp>
 
-static constexpr int MAX_MSG = 1024;
+static constexpr int MAX_MSG = 10240;
 static constexpr char  DELIM = '\0';
 
 namespace asio = boost::asio;
 namespace ip = asio::ip;
 namespace chrono = std::chrono;
+namespace process = boost::process;
 
 class client_session : std::enable_shared_from_this<client_session>{
 public:
@@ -42,6 +44,9 @@ private:
     std::string username_;
     size_t already_read_;
     char buffer_[MAX_MSG];
+    process::async_pipe out;
+    process::opstream in;
+    process::child child_;
 
     chrono::time_point<chrono::steady_clock> last_ping_;
 };

@@ -10,7 +10,7 @@
 namespace asio = boost::asio;
 namespace ip = asio::ip;
 
-static constexpr int MAX_MSG = 1024;
+static constexpr int MAX_MSG = 10240;
 static constexpr char DELIM = '\0';
 
 class sync_tcp_client {

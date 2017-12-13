@@ -9,9 +9,10 @@ set(SOURCE_FILES
         client_session.cpp client_session.hpp)
 
 set (BOOST_COMPONETS
-        system)
+        system
+        filesystem)
 
-find_package(Boost 1.64.0 COMPONENTS ${BOOST_COMPONETS})
+find_package(Boost COMPONENTS ${BOOST_COMPONETS})
 
 include_directories(${Boost_INCLUDE_DIRS})
 add_executable(Server ${SOURCE_FILES})

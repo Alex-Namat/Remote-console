@@ -6,7 +6,8 @@
 #include <iostream>
 
 client_session::client_session(ip::tcp::socket service) :
-        socket_(std::move(service)),already_read_(0)
+        socket_(std::move(service)),already_read_(0),
+        out(socket_.get_io_service()),child_("cmd",process::std_out>out,process::std_in<in,socket_.get_io_service())
 {
     last_ping_ = chrono::steady_clock::now();
 }
@@ -61,16 +62,22 @@ void client_session::on_login(const std::string& msg) {
     std::istringstream in(msg);
     in >> username_ >> username_;
     std::clog << username_ << " connected" << std::endl;
-    write("login ok");
+    asio::async_read(out, asio::buffer(buffer_), [](const boost::system::error_code &, std::size_t) {});
+    write(std::string(buffer_,MAX_MSG));
 }
 
 void client_session::on_command(const std::string& msg) {
-    std::clog << username_ << " : " << msg << std::endl;
-    write("command accepted");
+    std::istringstream ss(msg);
+    std::string str;
+    ss >> str >> str;
+    in << str << std::endl;
+    asio::async_read(out, asio::buffer(buffer_), [](const boost::system::error_code &, std::size_t) {});
+    write(std::string(buffer_,MAX_MSG));
 }
 
 void client_session::on_exit() {
     std::clog << username_ << " disconnect" << std::endl;
+    child_.terminate();
     stop();
 }
 
