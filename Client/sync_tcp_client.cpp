@@ -5,7 +5,6 @@
 #include "sync_tcp_client.hpp"
 
 #include <iostream>
-#include <thread>
 
 sync_tcp_client::sync_tcp_client(const asio::ip::address &address, const int &port) :
         ep(address,port),socket_(service_){
@@ -29,10 +28,10 @@ void sync_tcp_client::connect() {
 }
 
 void sync_tcp_client::loop() {
-    write("login " + username_);
+    write("#login " + username_);
     read_answer();
     std::thread(std::bind(&sync_tcp_client::pinged,this)).detach();
-    while(true) {
+    while(connected) {
         write_request();
         read_answer();
     }
@@ -40,9 +39,9 @@ void sync_tcp_client::loop() {
 
 void sync_tcp_client::write_request() {
     std::string msg;
-    std::cout << "-> ";
-    std::cin >> msg;
-    write("-> "+ msg);
+    std::cin.sync();
+    std::getline(std::cin,msg);
+    write(msg);
 }
 
 void sync_tcp_client::read_answer() {
@@ -55,12 +54,10 @@ void sync_tcp_client::read_answer() {
 
 void sync_tcp_client::process_msg() {
     std::string msg(buffer_, already_read_);
-    if ( msg.find("login ok") == 0) on_login();
-    else std::cout << msg << std::endl;
-}
-
-void sync_tcp_client::on_login() {
-    std::cout << "Connected" << std::endl;
+    if(msg.find("#disconnect") == 0 ||
+       msg.find("#buffer_overflow\n") == 0)
+        connected = false;
+    std::cout << msg;
 }
 
 void sync_tcp_client::write(const std::string &msg) {
@@ -70,14 +67,14 @@ void sync_tcp_client::write(const std::string &msg) {
 size_t sync_tcp_client::read_complete(const boost::system::error_code &err, size_t bytes) {
     if ( err) return 0;
     already_read_ = bytes;
-    bool found = std::find(buffer_, buffer_ + bytes, '\0') < buffer_ + bytes;
+    bool found = std::find(buffer_, buffer_ + bytes, DELIM) < buffer_ + bytes;
     // we read one-by-one until we get to enter, no buffering
     return found ? 0 : 1;
 }
 
 void sync_tcp_client::pinged() {
-    while(true) {
-        write("ping");
+    while(connected) {
+        write("#ping");
         std::this_thread::sleep_for(std::chrono::seconds(15));
     }
 }

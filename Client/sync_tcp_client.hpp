@@ -5,12 +5,13 @@
 #ifndef CLIENT_SYNC_TCP_CLIENT_HPP
 #define CLIENT_SYNC_TCP_CLIENT_HPP
 
+#include <thread>
 #include <boost/asio.hpp>
 
 namespace asio = boost::asio;
 namespace ip = asio::ip;
 
-static constexpr int MAX_MSG = 1024;
+static constexpr int MAX_MSG = 1024*10;
 static constexpr char DELIM = '\0';
 
 class sync_tcp_client {
@@ -24,7 +25,7 @@ private:
     void write_request();
     void read_answer();
     void process_msg();
-    void on_login();
+
     void write(const std::string & msg);
     size_t read_complete(const boost::system::error_code & err, size_t bytes);
 
@@ -33,9 +34,12 @@ private:
     asio::io_service service_;
     ip::tcp::endpoint ep;
     ip::tcp::socket socket_;
-    int already_read_;
+    
+    size_t already_read_ {0};
     char buffer_[MAX_MSG];
+    
     std::string username_;
+    mutable std::atomic<bool> connected {true};
 };
 
 

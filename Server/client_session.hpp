@@ -10,7 +10,9 @@
 
 #include <boost/asio.hpp>
 
-static constexpr int MAX_MSG = 1024;
+#include "win_process.hpp"
+
+static constexpr int MAX_MSG = 1024*10;
 static constexpr char  DELIM = '\0';
 
 namespace asio = boost::asio;
@@ -40,8 +42,10 @@ private:
 private:
     ip::tcp::socket socket_;
     std::string username_;
-    size_t already_read_;
+    size_t already_read_ {0};
     char buffer_[MAX_MSG];
+
+    win_process process_;
 
     chrono::time_point<chrono::steady_clock> last_ping_;
 };

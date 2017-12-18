@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(SOURCE_FILES
         main.cpp
         sync_tcp_server.cpp sync_tcp_server.hpp
-        client_session.cpp client_session.hpp)
+        client_session.cpp client_session.hpp
+        win_process.cpp win_process.hpp)
 
 set (BOOST_COMPONETS
         system)
