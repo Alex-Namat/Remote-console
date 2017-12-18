@@ -4,6 +4,7 @@
 int main() {
     sync_tcp_client client(ip::address::from_string("127.0.0.1"),8001);
     std::string str;
+    std::cout << "Enter username: ";
     std::cin >> str;
     client.run_client(str);
 }

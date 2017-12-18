@@ -1,4 +1,3 @@
-#include <iostream>
 #include "sync_tcp_server.hpp"
 
 int main() {
