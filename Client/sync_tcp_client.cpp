@@ -23,8 +23,9 @@ void sync_tcp_client::run_client(const std::string &client_name) {
     }
 }
 
-void sync_tcp_client::connect() {
+void sync_tcp_client::connect(){
     socket_.connect(ep);
+    connected = true;
 }
 
 void sync_tcp_client::loop() {
@@ -54,8 +55,10 @@ void sync_tcp_client::read_answer() {
 
 void sync_tcp_client::process_msg() {
     std::string msg(buffer_, already_read_);
-    if(msg.find("#disconnect") == 0 ||
-       msg.find("#buffer_overflow\n") == 0)
+    std::string s_disconnect("#disconnect"), s_buf("#buffer_overflow\n");
+    //ищем спец.команды
+    if(msg.compare(0,s_disconnect.size(),s_disconnect) == 0 ||
+       msg.compare(0,s_buf.size(),s_buf) == 0)
         connected = false;
     std::cout << msg;
 }
@@ -68,7 +71,7 @@ size_t sync_tcp_client::read_complete(const boost::system::error_code &err, size
     if ( err) return 0;
     already_read_ = bytes;
     bool found = std::find(buffer_, buffer_ + bytes, DELIM) < buffer_ + bytes;
-    // we read one-by-one until we get to enter, no buffering
+    // считываем посимвольно, пока не встретим символ конца сообщения
     return found ? 0 : 1;
 }
 

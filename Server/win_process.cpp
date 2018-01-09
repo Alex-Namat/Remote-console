@@ -4,7 +4,6 @@
 
 #include "win_process.hpp"
 #include <iostream>
-#include <thread>
 
 win_process::win_process(){
     sa.lpSecurityDescriptor = NULL;
@@ -12,19 +11,17 @@ win_process::win_process(){
     sa.bInheritHandle = true;       //разрешаем наследование дескрипторов
 }
 
-bool win_process::run() {
+void win_process::run() {
     if (!CreatePipe(&newstdin, &write_stdin, &sa, 0))   //создаем пайп для stdin
     {
-        std::cerr << "Fail CreatePipe for stdin!";
-        return false;
+        throw std::runtime_error("Fail CreatePipe for stdin!");
     }
 
     if (!CreatePipe(&read_stdout, &newstdout, &sa, 0)) //создаем пайп для stdout
     {
-        std::cerr << "Fail CreatePipe for stdout!";
         CloseHandle(newstdin);
         CloseHandle(write_stdin);
-        return false;
+        throw std::runtime_error("Fail CreatePipe for stdout!");
     }
 
     GetStartupInfo(&si);      //создаем startupinfo для
@@ -48,17 +45,15 @@ bool win_process::run() {
 
     if (!CreateProcess(NULL, "cmd.exe", NULL, NULL, TRUE, CREATE_NEW_CONSOLE,
                        NULL, NULL, &si, &pi)) {
-        std::cerr << "Fail CreateProcess!";
         CloseHandle(newstdin);
         CloseHandle(newstdout);
         CloseHandle(read_stdout);
         CloseHandle(write_stdin);
-        return false;
+        throw std::runtime_error("Fail CreateProcess!");
     }
-    return true;
 }
 
-bool win_process::is_active() const{
+bool win_process::is_active() const noexcept{
     WaitForSingleObject(pi.hProcess,1);
     unsigned long exit = 0;
     GetExitCodeProcess(pi.hProcess, &exit);
@@ -86,14 +81,14 @@ std::string win_process::read(char *buffer, const size_t& length) {
             return std::string(str,0,length-1);
         }
 
-    } while ((!str.empty() == true ? str.back() != '>' : true) &&
+    } while ((str.empty() || str.back() != '>') &&
              !buffer_overflow_ &&
              this->is_active());
 
     return str;
 }
 
-void win_process::write(std::string str) {
+void win_process::write(std::string str){
     unsigned long bread;
     str += "\n";
     msg_size = str.size();
@@ -114,11 +109,11 @@ void win_process::stop() {
     CloseHandle(write_stdin);
 }
 
-bool win_process::buffer_overflow() const {
+bool win_process::buffer_overflow() const noexcept {
     return buffer_overflow_;
 }
 
-void win_process::kill_process_tree() {
+void win_process::kill_process_tree() const noexcept {
     auto str = "taskkill /PID " + std::to_string(pi.dwProcessId) + " /F /T";
     system(str.c_str());
 }

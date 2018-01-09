@@ -36,10 +36,10 @@ private:
     ip::tcp::socket socket_;
     
     size_t already_read_ {0};
-    char buffer_[MAX_MSG];
+    char buffer_[MAX_MSG] {0};
     
     std::string username_;
-    mutable std::atomic<bool> connected {true};
+    std::atomic<bool> connected {false};
 };
 
 

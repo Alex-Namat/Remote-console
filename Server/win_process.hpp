@@ -12,15 +12,15 @@ class win_process {
 public:
     win_process();
     ~win_process();
-    bool run();
+    void run();
     void stop();
-    bool is_active() const;
+    bool is_active() const noexcept;
     std::string read(char *buffer, const size_t &length);
     void write(std::string str);
 
-    bool buffer_overflow() const;
+    bool buffer_overflow() const noexcept;
 private:
-    void kill_process_tree();
+    void kill_process_tree() const noexcept;
 
     STARTUPINFO si;
     SECURITY_ATTRIBUTES sa;
