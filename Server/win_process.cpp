@@ -5,13 +5,13 @@
 #include "win_process.hpp"
 #include <iostream>
 
-win_process::win_process(){
+process::process(){
     sa.lpSecurityDescriptor = NULL;
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
     sa.bInheritHandle = true;       //разрешаем наследование дескрипторов
 }
 
-void win_process::run() {
+void process::run() {
     if (!CreatePipe(&newstdin, &write_stdin, &sa, 0))   //создаем пайп для stdin
     {
         throw std::runtime_error("Fail CreatePipe for stdin!");
@@ -53,7 +53,7 @@ void win_process::run() {
     }
 }
 
-bool win_process::is_active() const noexcept{
+bool process::is_active() const noexcept{
     WaitForSingleObject(pi.hProcess,1);
     unsigned long exit = 0;
     GetExitCodeProcess(pi.hProcess, &exit);
@@ -61,7 +61,7 @@ bool win_process::is_active() const noexcept{
     return true;
 }
 
-std::string win_process::read(char *buffer, const size_t& length) {
+std::string process::read(char *buffer, const size_t& length) {
     unsigned long bread = 0;   //кол-во прочитанных байт
 
     std::string str;
@@ -88,18 +88,18 @@ std::string win_process::read(char *buffer, const size_t& length) {
     return str;
 }
 
-void win_process::write(std::string str){
+void process::write(std::string str){
     unsigned long bread;
     str += "\n";
     msg_size = str.size();
     WriteFile(write_stdin, str.c_str(), str.size(), &bread, NULL);
 }
 
-win_process::~win_process() {
+process::~process() {
     stop();
 }
 
-void win_process::stop() {
+void process::stop() {
     if(this->is_active()) kill_process_tree();
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
@@ -109,11 +109,11 @@ void win_process::stop() {
     CloseHandle(write_stdin);
 }
 
-bool win_process::buffer_overflow() const noexcept {
+bool process::buffer_overflow() const noexcept {
     return buffer_overflow_;
 }
 
-void win_process::kill_process_tree() const noexcept {
+void process::kill_process_tree() const noexcept {
     auto str = "taskkill /PID " + std::to_string(pi.dwProcessId) + " /F /T";
     system(str.c_str());
 }

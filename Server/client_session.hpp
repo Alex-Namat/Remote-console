@@ -7,7 +7,12 @@
 
 #include <chrono>
 #include <boost/asio.hpp>
-#include "win_process.hpp"
+
+#ifdef _linux_
+    #include "linux_process.hpp"
+#elif _WIN32
+    #include "win_process.hpp"
+#endif
 
 static constexpr int MAX_MSG = 1024*10;
 static constexpr char  DELIM = '\0';
@@ -16,7 +21,7 @@ namespace asio = boost::asio;
 namespace ip = asio::ip;
 namespace chrono = std::chrono;
 
-class client_session : std::enable_shared_from_this<client_session>, boost::noncopyable{
+class client_session : std::enable_shared_from_this<client_session>, asio::noncopyable{
 public:
     explicit client_session(ip::tcp::socket socket);
     ip::tcp::socket& socket();
@@ -42,7 +47,7 @@ private:
     size_t already_read_ {0};
     char buffer_[MAX_MSG] {0};
 
-    win_process process_;
+    process process_;
 
     chrono::time_point<chrono::steady_clock> last_ping_;
 };

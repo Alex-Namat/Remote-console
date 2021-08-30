@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.8)
-project(Server)
+project(Server LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-
-set(SOURCE_FILES
+set(SOURCES
         main.cpp
-        sync_tcp_server.cpp sync_tcp_server.hpp
-        client_session.cpp client_session.hpp
-        win_process.cpp win_process.hpp)
+        sync_tcp_server.cpp 
+        client_session.cpp)
+
+set(HEADERS
+        sync_tcp_server.hpp
+        client_session.hpp)
 
 set (BOOST_COMPONETS
         system
@@ -15,6 +16,21 @@ set (BOOST_COMPONETS
 
 find_package(Boost COMPONENTS ${BOOST_COMPONETS})
 
-include_directories(${Boost_INCLUDE_DIRS})
-add_executable(Server ${SOURCE_FILES})
-target_link_libraries(Server ${Boost_LIBRARIES} ws2_32)
+if(WIN32)
+        set(SPEC_FILES 
+                win_process.cpp win_process.hpp)
+endif()
+
+add_executable(Server ${SOURCES} ${HEADERS} ${SPEC_FILES})
+
+set_target_properties(Server PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON)
+
+target_include_directories(Server PRIVATE ${Boost_INCLUDE_DIRS})
+
+if(WIN32)
+        target_link_libraries(Server ${Boost_LIBRARIES} ws2_32)
+else()
+        target_link_libraries(Server ${Boost_LIBRARIES})
+endif()

@@ -8,10 +8,10 @@
 #include <windows.h>
 #include <string>
 
-class win_process {
+class process {
 public:
-    win_process();
-    ~win_process();
+    process();
+    ~process();
     void run();
     void stop();
     bool is_active() const noexcept;
